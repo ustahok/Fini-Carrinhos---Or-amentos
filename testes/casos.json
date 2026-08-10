@@ -1,0 +1,356 @@
+{
+  "descricao": "Casos de aceite do motor de orçamento. Os valores esperados vêm das apresentações reais da Fini e da spec.md — não são invenção do motor. Se um caso quebrar, o motor está errado (ou a regra mudou e a spec precisa ser atualizada).",
+  "tolerancia": 0.005,
+  "casos": [
+    {
+      "id": "publicado-8kg",
+      "grupo": "Os 10 pontos publicados (São Paulo, 4h)",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "kg": 8 },
+      "espera": { "publico.total_geral": 1380, "publico.valor_parcela": 460 }
+    },
+    {
+      "id": "publicado-8.5kg",
+      "grupo": "Os 10 pontos publicados (São Paulo, 4h)",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "kg": 8.5 },
+      "espera": { "publico.total_geral": 1447.5, "publico.valor_parcela": 482.5 }
+    },
+    {
+      "id": "publicado-9kg",
+      "grupo": "Os 10 pontos publicados (São Paulo, 4h)",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "kg": 9 },
+      "espera": { "publico.total_geral": 1515, "publico.valor_parcela": 505 }
+    },
+    {
+      "id": "publicado-10.5kg",
+      "grupo": "Os 10 pontos publicados (São Paulo, 4h)",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "kg": 10.5 },
+      "espera": { "publico.total_geral": 1717.5, "publico.valor_parcela": 572.5 }
+    },
+    {
+      "id": "publicado-11.5kg",
+      "grupo": "Os 10 pontos publicados (São Paulo, 4h)",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "kg": 11.5 },
+      "espera": { "publico.total_geral": 1852.5, "publico.valor_parcela": 617.5 }
+    },
+    {
+      "id": "publicado-12kg",
+      "grupo": "Os 10 pontos publicados (São Paulo, 4h)",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "kg": 12 },
+      "espera": { "publico.total_geral": 1920, "publico.valor_parcela": 640 }
+    },
+    {
+      "id": "publicado-15kg",
+      "grupo": "Os 10 pontos publicados (São Paulo, 4h)",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "kg": 15 },
+      "espera": { "publico.total_geral": 2220, "publico.valor_parcela": 740 }
+    },
+    {
+      "id": "publicado-16kg",
+      "grupo": "Os 10 pontos publicados (São Paulo, 4h)",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "kg": 16 },
+      "espera": { "publico.total_geral": 2340, "publico.valor_parcela": 780 }
+    },
+    {
+      "id": "publicado-18kg",
+      "grupo": "Os 10 pontos publicados (São Paulo, 4h)",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "kg": 18 },
+      "espera": { "publico.total_geral": 2550, "publico.valor_parcela": 850 }
+    },
+    {
+      "id": "publicado-20kg",
+      "grupo": "Os 10 pontos publicados (São Paulo, 4h)",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "kg": 20 },
+      "espera": { "publico.total_geral": 2800 }
+    },
+
+    {
+      "id": "liquido-spec-6",
+      "grupo": "Líquido (spec §6)",
+      "nota": "50 convidados, 8 kg, SP, 4h, comissão 0 → líquido 709,26",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "convidados": 50, "kg": 8, "comissao": 0 },
+      "espera": {
+        "interno.total_geral": 1380,
+        "interno.imposto": 117.3,
+        "interno.custo_balas": 253.44,
+        "interno.frete": 150,
+        "interno.promotor": 150,
+        "interno.liquido": 709.26
+      }
+    },
+
+    {
+      "id": "grupotop-60g",
+      "grupo": "Grupo TOP — ação de 2 eventos, budget 2.300 (spec §8)",
+      "nota": "60 g/pessoa em ~300 pessoas = 18 kg no total",
+      "acao": "orcarAcao",
+      "entrada": {
+        "eventos": [
+          { "local": "São Paulo", "kg": 9, "data": "16/09/2026", "hora_inicio": "14:00", "hora_fim": "15:30" },
+          { "local": "São Paulo", "kg": 9, "data": "17/09/2026", "hora_inicio": "14:00", "hora_fim": "15:30" }
+        ],
+        "opcoes": { "budget": 2300 }
+      },
+      "espera": {
+        "interno.receita": 2300,
+        "interno.imposto": 195.5,
+        "interno.frete": 300,
+        "interno.promotor": 300,
+        "interno.kg_total": 18,
+        "interno.liquido": 934.26
+      }
+    },
+    {
+      "id": "grupotop-80g",
+      "grupo": "Grupo TOP — ação de 2 eventos, budget 2.300 (spec §8)",
+      "nota": "80 g/pessoa = 24 kg. Líquido por evento 372,09 → abaixo do piso de 500",
+      "acao": "orcarAcao",
+      "entrada": {
+        "eventos": [
+          { "local": "São Paulo", "kg": 12, "data": "16/09/2026", "hora_inicio": "14:00", "hora_fim": "15:30" },
+          { "local": "São Paulo", "kg": 12, "data": "17/09/2026", "hora_inicio": "14:00", "hora_fim": "15:30" }
+        ],
+        "opcoes": { "budget": 2300 }
+      },
+      "espera": {
+        "interno.kg_total": 24,
+        "interno.liquido": 744.18,
+        "interno.liquido_por_evento": 372.09,
+        "interno.piso.status": "abaixo",
+        "interno.piso.piso_min": 500
+      }
+    },
+    {
+      "id": "grupotop-100g",
+      "grupo": "Grupo TOP — ação de 2 eventos, budget 2.300 (spec §8)",
+      "nota": "100 g/pessoa = 30 kg",
+      "acao": "orcarAcao",
+      "entrada": {
+        "eventos": [
+          { "local": "São Paulo", "kg": 15, "data": "16/09/2026", "hora_inicio": "14:00", "hora_fim": "15:30" },
+          { "local": "São Paulo", "kg": 15, "data": "17/09/2026", "hora_inicio": "14:00", "hora_fim": "15:30" }
+        ],
+        "opcoes": { "budget": 2300 }
+      },
+      "espera": { "interno.kg_total": 30, "interno.liquido": 554.1 }
+    },
+
+    {
+      "id": "reverso-piso-500",
+      "grupo": "Cálculo reverso (spec §7 e §8)",
+      "nota": "24 kg, frete+promotor 600, piso 500/evento em 2 eventos = 1.000",
+      "acao": "precoMinimo",
+      "entrada": { "liquido_alvo": 1000, "kg": 24, "frete": 300, "promotor": 300 },
+      "espera": { "preco_minimo": 2579.58 }
+    },
+    {
+      "id": "reverso-piso-600",
+      "grupo": "Cálculo reverso (spec §7 e §8)",
+      "nota": "mesmo caso com piso de 600/evento",
+      "acao": "precoMinimo",
+      "entrada": { "liquido_alvo": 1200, "kg": 24, "frete": 300, "promotor": 300 },
+      "espera": { "preco_minimo": 2798.16 }
+    },
+    {
+      "id": "reverso-kg-maximo",
+      "grupo": "Cálculo reverso (spec §7 e §8)",
+      "nota": "inverso do caso anterior: com budget 2.579,58 devem caber os 24 kg",
+      "acao": "kgMaximo",
+      "entrada": { "budget": 2579.58, "liquido_alvo": 1000, "frete": 300, "promotor": 300 },
+      "espera": { "kg_maximo": 24 }
+    },
+
+    {
+      "id": "frete-sp",
+      "grupo": "Frete por região (spec §5.2)",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "kg": 9 },
+      "espera": { "detalhe.frete": 150, "detalhe.regiao_frete": "São Paulo" }
+    },
+    {
+      "id": "frete-abc",
+      "grupo": "Frete por região (spec §5.2)",
+      "nota": "endereço do ABC costuma trazer 'São Paulo' junto — o ABC tem de vencer",
+      "acao": "orcar",
+      "entrada": { "local": "Santo André - São Paulo", "kg": 9 },
+      "espera": { "detalhe.frete": 200, "detalhe.regiao_frete": "ABC" }
+    },
+    {
+      "id": "frete-guarulhos",
+      "grupo": "Frete por região (spec §5.2)",
+      "acao": "orcar",
+      "entrada": { "local": "Guarulhos", "kg": 9 },
+      "espera": { "detalhe.frete": 250, "detalhe.regiao_frete": "Guarulhos" }
+    },
+    {
+      "id": "frete-fora-pergunta",
+      "grupo": "Frete por região (spec §5.2)",
+      "nota": "Alphaville é Barueri: fora das faixas. O agente não arbitra, pergunta.",
+      "acao": "orcar",
+      "entrada": { "local": "Alphaville", "convidados": 120 },
+      "espera": { "ok": false, "faltando.0": "frete" }
+    },
+    {
+      "id": "frete-fora-informado",
+      "grupo": "Frete por região (spec §5.2)",
+      "nota": "com o frete informado pelo operador, o orçamento fecha",
+      "acao": "orcar",
+      "entrada": { "local": "Alphaville", "kg": 12, "frete_informado": 250 },
+      "espera": { "ok": true, "detalhe.frete": 250, "publico.total_geral": 2020 }
+    },
+    {
+      "id": "local-ausente",
+      "grupo": "Frete por região (spec §5.2)",
+      "acao": "orcar",
+      "entrada": { "kg": 12 },
+      "espera": { "ok": false, "faltando.0": "local" }
+    },
+
+    {
+      "id": "promotor-4h",
+      "grupo": "Promotor (spec §5.3)",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "kg": 9, "hora_inicio": "14:00", "hora_fim": "18:00" },
+      "espera": { "detalhe.promotor": 150, "detalhe.horas": 4, "detalhe.madrugada": false }
+    },
+    {
+      "id": "promotor-5h",
+      "grupo": "Promotor (spec §5.3)",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "kg": 9, "hora_inicio": "14:00", "hora_fim": "19:00" },
+      "espera": { "detalhe.promotor": 200, "detalhe.horas": 5 }
+    },
+    {
+      "id": "promotor-madrugada",
+      "grupo": "Promotor (spec §5.3)",
+      "nota": "22:00 às 02:00 = 4h atravessando a meia-noite → 150 + 100",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "kg": 9, "hora_inicio": "22:00", "hora_fim": "02:00" },
+      "espera": { "detalhe.promotor": 250, "detalhe.horas": 4, "detalhe.madrugada": true }
+    },
+    {
+      "id": "promotor-madrugada-longa",
+      "grupo": "Promotor (spec §5.3)",
+      "nota": "21:00 às 02:00 = 5h com madrugada → 150 + 50 + 100",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "kg": 9, "hora_inicio": "21:00", "hora_fim": "02:00" },
+      "espera": { "detalhe.promotor": 300, "detalhe.horas": 5 }
+    },
+
+    {
+      "id": "composicao-15kg",
+      "grupo": "Distribuição de peso nos baleiros (spec §3)",
+      "nota": "15 kg em 12 opções, todas bala → 6 balas de 1,5 kg + 6 balas de 1 kg",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "kg": 15, "baleiros": 12, "marshmallows": 0 },
+      "espera": {
+        "detalhe.composicao.linhas.0.opcoes": 6,
+        "detalhe.composicao.linhas.0.kg_cada": 1.5,
+        "detalhe.composicao.linhas.1.opcoes": 6,
+        "detalhe.composicao.linhas.1.kg_cada": 1,
+        "detalhe.composicao.kg_total": 15
+      }
+    },
+    {
+      "id": "composicao-9kg-1marsh",
+      "grupo": "Distribuição de peso nos baleiros (spec §3)",
+      "nota": "9 kg em 9 opções (8 balas + 1 marsh) → marsh 0,5 + 1 bala 1,5 + 7 balas 1,0",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "kg": 9, "baleiros": 9, "marshmallows": 1 },
+      "espera": {
+        "detalhe.composicao.linhas.0.tipo": "marshmallow",
+        "detalhe.composicao.linhas.0.opcoes": 1,
+        "detalhe.composicao.linhas.0.kg_cada": 0.5,
+        "detalhe.composicao.linhas.1.opcoes": 1,
+        "detalhe.composicao.linhas.1.kg_cada": 1.5,
+        "detalhe.composicao.linhas.2.opcoes": 7,
+        "detalhe.composicao.linhas.2.kg_cada": 1,
+        "detalhe.composicao.kg_total": 9
+      }
+    },
+    {
+      "id": "composicao-8kg-2marsh",
+      "grupo": "Distribuição de peso nos baleiros (spec §3)",
+      "nota": "o caso 'arrumadinho' do material: 2 marsh × 0,5 + 7 balas × 1 kg",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "kg": 8 },
+      "espera": {
+        "detalhe.composicao.baleiros": 9,
+        "detalhe.composicao.marshmallows": 2,
+        "detalhe.composicao.linhas.1.opcoes": 7,
+        "detalhe.composicao.linhas.1.kg_cada": 1,
+        "detalhe.composicao.kg_total": 8
+      }
+    },
+
+    {
+      "id": "escada-100-convidados",
+      "grupo": "Escada convidados → kg (spec §4)",
+      "nota": "sem kg informado, usa a opção do meio da faixa: 11,5 kg",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "convidados": 100 },
+      "espera": { "detalhe.kg": 11.5, "publico.total_geral": 1852.5 }
+    },
+    {
+      "id": "escada-fora-da-tabela",
+      "grupo": "Escada convidados → kg (spec §4)",
+      "nota": "300 convidados está acima da última faixa → 80 g/convidado = 24 kg, com aviso",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "convidados": 300 },
+      "espera": { "detalhe.kg": 24 },
+      "esperaAviso": "g/convidado"
+    },
+    {
+      "id": "escada-entre-faixas",
+      "grupo": "Escada convidados → kg (spec §4)",
+      "nota": "110 convidados não existe na tabela → encaixa em 100 e avisa",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "convidados": 110 },
+      "espera": { "detalhe.kg": 11.5 },
+      "esperaAviso": "não está na tabela"
+    },
+    {
+      "id": "kg-vence-convidados",
+      "grupo": "Precedência de parâmetros (spec §2)",
+      "nota": "kg informado vence convidados, e o motor sinaliza a divergência",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "convidados": 50, "kg": 18 },
+      "espera": { "detalhe.kg": 18, "publico.total_geral": 2550 },
+      "esperaAviso": "fora das opções da faixa"
+    },
+    {
+      "id": "acima-de-20kg-sinaliza",
+      "grupo": "Precedência de parâmetros (spec §2)",
+      "nota": "acima de 20 kg mantém 125/kg e marca como ponto de negociação",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "kg": 25 },
+      "espera": { "detalhe.preco_kg": 125, "publico.total_geral": 3425 },
+      "esperaAviso": "ponto de negociação"
+    },
+
+    {
+      "id": "monotonia",
+      "grupo": "Invariantes",
+      "nota": "o total tem de crescer com o kg em toda a faixa — o trecho entre 12 e 15 kg é o de risco, porque é onde a taxa cai",
+      "acao": "monotonia",
+      "entrada": { "de": 8, "ate": 25, "passo": 0.5, "local": "São Paulo" }
+    },
+    {
+      "id": "publico-nao-vaza-custo",
+      "grupo": "Invariantes",
+      "nota": "o bloco que vai para o cliente nunca pode conter custo, imposto, líquido ou piso",
+      "acao": "vazamento",
+      "entrada": { "local": "São Paulo", "kg": 12 }
+    }
+  ]
+}
