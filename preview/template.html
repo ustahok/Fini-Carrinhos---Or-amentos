@@ -1,0 +1,535 @@
+<title>Fini Carrinhos · Orçamento</title>
+
+<style>
+/* ---------------------------------------------------------------------------
+   Fontes da marca, embutidas (o CSP dos artifacts bloqueia CDN de fontes).
+   --------------------------------------------------------------------------- */
+@font-face{font-family:'Nunito';font-style:normal;font-weight:400;font-display:swap;
+  src:url(data:font/ttf;base64,__FONT_NUNITO_REGULAR__) format('truetype')}
+@font-face{font-family:'Nunito';font-style:normal;font-weight:700;font-display:swap;
+  src:url(data:font/ttf;base64,__FONT_NUNITO_BOLD__) format('truetype')}
+@font-face{font-family:'FiniFun';font-style:normal;font-weight:400;font-display:swap;
+  src:url(data:font/otf;base64,__FONT_FINIFUN__) format('opentype')}
+
+/* ---------------------------------------------------------------------------
+   Dois mundos de cor, de propósito.
+
+   O PAINEL usa o design system documentado da Fini (roxo #554596, rosa #E83278,
+   fundo #f0eef8) e acompanha o tema do navegador — é a ferramenta.
+
+   A FOLHA usa a paleta do material de vendas (âmbar e carmim) e é fixa nos dois
+   temas — é o documento que o cliente recebe, e documento não muda de cor.
+
+   A diferença visual entre os dois é o próprio limite entre o que é interno e o
+   que vai para o cliente.
+   --------------------------------------------------------------------------- */
+:root{
+  --fundo:#f0eef8; --superficie:#ffffff; --superficie-2:#f7f5fc;
+  --tinta:#241f38; --tinta-fraca:#655d85; --borda:#ded8ef;
+  --roxo:#554596; --rosa:#E83278;
+  --bom:#1d7a4c; --atencao:#a8690a; --ruim:#b02436;
+  --bom-fundo:#e2f4ea; --atencao-fundo:#fbf0da; --ruim-fundo:#fbe6e9;
+
+  /* A folha: sempre estes valores, em qualquer tema. */
+  --ambar:#FBD46E; --ambar-celula:#FCE1A2; --ambar-linha:#F3C24E;
+  --carmim:#CE2136; --carmim-fundo:#A8182B;
+  --cacau:#6E3A24; --creme:#FFFDF5; --fini-roxo:#3B3184;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --fundo:#161327; --superficie:#201c36; --superficie-2:#2a2544;
+    --tinta:#ece9f7; --tinta-fraca:#a49bc6; --borda:#372f55;
+    --roxo:#9b8bd8; --rosa:#ff6ba3;
+    --bom:#6ddca4; --atencao:#f0c161; --ruim:#ff8d9e;
+    --bom-fundo:#16342a; --atencao-fundo:#3a2e12; --ruim-fundo:#3d1c25;
+  }
+}
+:root[data-theme="dark"]{
+  --fundo:#161327; --superficie:#201c36; --superficie-2:#2a2544;
+  --tinta:#ece9f7; --tinta-fraca:#a49bc6; --borda:#372f55;
+  --roxo:#9b8bd8; --rosa:#ff6ba3;
+  --bom:#6ddca4; --atencao:#f0c161; --ruim:#ff8d9e;
+  --bom-fundo:#16342a; --atencao-fundo:#3a2e12; --ruim-fundo:#3d1c25;
+}
+
+*{box-sizing:border-box}
+/* .campo é display:flex e venceria o atributo hidden sem isto. */
+[hidden]{display:none !important}
+body{
+  margin:0; background:var(--fundo); color:var(--tinta);
+  font-family:'Nunito',system-ui,sans-serif; font-size:16px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{margin:0; text-wrap:balance; font-weight:700}
+
+.envelope{max-width:1180px; margin:0 auto; padding:28px 20px 64px}
+
+.cabecalho{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 16px; margin-bottom:8px}
+.cabecalho h1{font-size:1.5rem; letter-spacing:-.015em}
+.cabecalho p{margin:0; color:var(--tinta-fraca); font-size:.9rem}
+.selo{
+  font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em;
+  color:var(--roxo); border:1.5px solid var(--roxo); border-radius:999px; padding:3px 10px;
+}
+
+.colunas{display:grid; grid-template-columns:minmax(0,360px) minmax(0,1fr); gap:28px; margin-top:24px; align-items:start}
+@media (max-width:900px){.colunas{grid-template-columns:1fr}}
+
+/* ------------------------------ painel ------------------------------ */
+.painel{
+  background:var(--superficie); border:1px solid var(--borda); border-radius:14px;
+  padding:20px; display:flex; flex-direction:column; gap:18px;
+}
+@media (min-width:901px){.painel{position:sticky; top:20px}}
+
+.painel h2{
+  font-size:.72rem; text-transform:uppercase; letter-spacing:.11em;
+  color:var(--tinta-fraca); font-weight:700;
+}
+.campos{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+.campo{display:flex; flex-direction:column; gap:5px; min-width:0}
+.campo.largo{grid-column:1 / -1}
+.campo label{font-size:.74rem; font-weight:700; color:var(--tinta-fraca)}
+.campo input,.campo select{
+  font:inherit; font-size:.92rem; color:var(--tinta); background:var(--superficie-2);
+  border:1px solid var(--borda); border-radius:9px; padding:8px 10px; width:100%;
+}
+.campo input:focus-visible,.campo select:focus-visible{
+  outline:2.5px solid var(--roxo); outline-offset:1px; border-color:transparent;
+}
+.dica{font-size:.72rem; color:var(--tinta-fraca); margin:0}
+
+.interno{border-top:1px solid var(--borda); padding-top:16px; display:flex; flex-direction:column; gap:12px}
+.interno-titulo{display:flex; align-items:center; gap:8px}
+.interno-titulo h2{color:var(--rosa)}
+.olho{width:15px; height:15px; flex:none; color:var(--rosa)}
+
+table.numeros{width:100%; border-collapse:collapse; font-size:.82rem; font-variant-numeric:tabular-nums}
+table.numeros th,table.numeros td{padding:5px 4px; text-align:right; white-space:nowrap}
+table.numeros th:first-child,table.numeros td:first-child{text-align:left; white-space:normal}
+table.numeros thead th{
+  font-size:.68rem; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--tinta-fraca); border-bottom:1px solid var(--borda); padding-bottom:7px;
+}
+table.numeros td:first-child{color:var(--tinta-fraca)}
+tr.destaque td{border-top:1px solid var(--borda); padding-top:8px; font-weight:700; color:var(--tinta)}
+tr.destaque td:first-child{color:var(--tinta)}
+.rolagem{overflow-x:auto}
+
+.chip{
+  display:inline-block; font-size:.68rem; font-weight:700; border-radius:999px;
+  padding:2px 8px; letter-spacing:.02em; white-space:nowrap;
+}
+.chip.ok{background:var(--bom-fundo); color:var(--bom)}
+.chip.atencao{background:var(--atencao-fundo); color:var(--atencao)}
+.chip.abaixo{background:var(--ruim-fundo); color:var(--ruim)}
+
+.recado{
+  font-size:.8rem; line-height:1.45; border-radius:10px; padding:10px 12px;
+  background:var(--atencao-fundo); color:var(--atencao); border:1px solid currentColor;
+}
+.recado.erro{background:var(--ruim-fundo); color:var(--ruim)}
+.recado ul{margin:6px 0 0; padding-left:16px}
+.recado:empty{display:none}
+
+/* ------------------------------ a folha ------------------------------ */
+.folha-area{display:flex; flex-direction:column; gap:12px; min-width:0}
+.folha-legenda{font-size:.75rem; color:var(--tinta-fraca); margin:0}
+
+.folha{
+  background:var(--ambar); color:var(--cacau); border-radius:16px; overflow:hidden;
+  box-shadow:0 14px 40px rgba(40,20,10,.18); max-width:620px; width:100%;
+}
+.folha *{font-family:'Nunito',system-ui,sans-serif}
+
+.folha-topo{padding:22px 26px 4px; text-align:center}
+.folha-eyebrow{
+  font-family:'FiniFun','Nunito',system-ui,sans-serif; font-size:1.15rem;
+  color:var(--carmim); letter-spacing:.02em; margin:0 0 2px;
+}
+.folha-topo h3{font-size:1.35rem; color:var(--carmim); letter-spacing:-.01em}
+.folha-sub{margin:4px 0 0; font-size:.86rem; color:var(--cacau); opacity:.85}
+
+.grade{display:grid; gap:0; padding:18px 20px 4px}
+.grade-linha{display:grid; grid-template-columns:86px repeat(var(--n,3),minmax(0,1fr)); align-items:center}
+.grade-rotulo{
+  font-size:.78rem; font-weight:700; color:var(--carmim); padding:12px 8px 12px 4px; line-height:1.25;
+}
+.celula{padding:12px 6px; text-align:center; border-left:2px solid var(--ambar-linha); min-width:0}
+.grade-linha:not(:last-child) .celula,
+.grade-linha:not(:last-child) .grade-rotulo{border-bottom:2px solid var(--ambar-linha)}
+
+.selo-kg{
+  display:inline-block; border:2.5px solid var(--carmim); border-radius:12px;
+  padding:6px 14px; font-size:1.15rem; font-weight:700; color:var(--carmim);
+  font-variant-numeric:tabular-nums;
+}
+.sugerida .selo-kg{background:var(--carmim); color:var(--ambar)}
+.marca-sugerida{
+  display:block; font-size:.6rem; font-weight:700; text-transform:uppercase;
+  letter-spacing:.09em; color:var(--carmim); margin-top:6px; opacity:.9;
+}
+.pilula-valor{
+  display:inline-flex; align-items:baseline; gap:5px; background:var(--carmim); color:#fff;
+  border-radius:999px; padding:5px 13px; font-weight:700; font-variant-numeric:tabular-nums;
+}
+.pilula-valor .vezes{font-size:.78rem; opacity:.9}
+.pilula-valor .cifra{font-size:.78rem}
+.pilula-valor .quanto{font-size:1.02rem}
+.total-abaixo{
+  display:block; margin-top:6px; font-size:.82rem; font-weight:700;
+  color:var(--carmim-fundo); font-variant-numeric:tabular-nums;
+}
+.lista-balas{margin:0; padding:0; list-style:none; font-size:.74rem; text-align:left; line-height:1.5}
+.lista-balas li{padding-left:9px; position:relative}
+.lista-balas li::before{content:"–"; position:absolute; left:0; color:var(--carmim)}
+
+.onda{
+  height:12px; margin:14px 20px 10px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='12'%3E%3Cpath d='M0 6 Q10 1 20 6 T40 6' fill='none' stroke='%23FFFDF5' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E") repeat-x center;
+}
+
+.faixa{padding:2px 26px 10px}
+.faixa-titulo{
+  display:block; margin:0 auto 14px; width:fit-content; background:var(--carmim); color:#fff;
+  border-radius:999px; padding:5px 22px; font-size:.86rem; font-weight:700;
+}
+
+.inclusos{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; text-align:center}
+@media (max-width:520px){.inclusos{grid-template-columns:1fr; text-align:left}}
+.incluso{display:flex; flex-direction:column; align-items:center; gap:6px; font-size:.76rem; line-height:1.35}
+@media (max-width:520px){.incluso{flex-direction:row; align-items:flex-start; gap:10px; text-align:left}}
+.incluso svg{width:30px; height:30px; flex:none; color:var(--carmim)}
+.incluso b{color:var(--carmim)}
+.notas{margin:12px 0 0; font-size:.66rem; color:var(--cacau); opacity:.8; text-align:center; line-height:1.6}
+
+.fretes{display:flex; flex-direction:column; gap:7px; max-width:400px; margin:0 auto}
+.frete-linha{display:flex; align-items:center; gap:12px}
+.frete-nome{
+  background:var(--carmim); color:#fff; border-radius:999px; padding:4px 14px;
+  font-size:.75rem; font-weight:700; flex:none; min-width:172px;
+}
+.frete-valor{font-size:.8rem; font-weight:700; font-variant-numeric:tabular-nums}
+.frete-linha.atual .frete-nome{background:var(--fini-roxo)}
+
+.pagamento{display:flex; align-items:center; justify-content:center; gap:10px; font-size:.86rem; font-weight:700}
+.pagamento svg{width:26px; height:26px; color:var(--carmim)}
+
+.folha-pe{display:flex; justify-content:center; padding:8px 0 22px}
+.folha-pe img{width:96px; height:auto; display:block}
+
+.transicao{animation:surgir .28s ease-out}
+@keyframes surgir{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none}}
+@media (prefers-reduced-motion:reduce){
+  .transicao{animation:none}
+  *{transition:none !important}
+}
+</style>
+
+<div class="envelope">
+  <header class="cabecalho">
+    <h1>Orçamento Fini Carrinhos</h1>
+    <span class="selo">Prévia do Passo 2</span>
+    <p>O motor de cálculo roda dentro desta página — os valores são calculados, não desenhados.</p>
+  </header>
+
+  <div class="colunas">
+    <!-- ------------------------------ painel ------------------------------ -->
+    <section class="painel" aria-label="Dados do pedido">
+      <div>
+        <h2>O pedido</h2>
+        <div class="campos" style="margin-top:10px">
+          <div class="campo largo">
+            <label for="cliente">Cliente</label>
+            <input id="cliente" type="text" value="Ana Beatriz" autocomplete="off">
+          </div>
+          <div class="campo">
+            <label for="data">Data da festa</label>
+            <input id="data" type="date" value="2026-09-12">
+          </div>
+          <div class="campo">
+            <label for="local">Local</label>
+            <select id="local">
+              <option value="São Paulo" selected>São Paulo</option>
+              <option value="Santo André">ABC</option>
+              <option value="Osasco">Osasco</option>
+              <option value="Guarulhos">Guarulhos</option>
+              <option value="__outra">Outra cidade…</option>
+            </select>
+          </div>
+          <div class="campo largo" id="linha-frete" hidden>
+            <label for="frete-informado">Frete dessa cidade (R$)</label>
+            <input id="frete-informado" type="number" min="0" step="10" value="300">
+            <p class="dica">Fora das faixas o agente não arbitra: ele pergunta o frete antes de emitir.</p>
+          </div>
+          <div class="campo">
+            <label for="base">Partir de</label>
+            <select id="base">
+              <option value="convidados" selected>Convidados</option>
+              <option value="kg">Kg fechado</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="quantidade" id="rotulo-quantidade">Convidados</label>
+            <input id="quantidade" type="number" min="1" step="1" value="50">
+          </div>
+          <div class="campo">
+            <label for="inicio">Início</label>
+            <input id="inicio" type="time" value="16:00">
+          </div>
+          <div class="campo">
+            <label for="fim">Fim</label>
+            <input id="fim" type="time" value="20:00">
+          </div>
+        </div>
+      </div>
+
+      <div class="recado" id="recados" role="status"></div>
+
+      <div class="interno">
+        <div class="interno-titulo">
+          <svg class="olho" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/>
+          </svg>
+          <h2>Só você vê</h2>
+        </div>
+        <div class="rolagem">
+          <table class="numeros" id="tabela-interna"></table>
+        </div>
+        <p class="dica" id="nota-piso"></p>
+      </div>
+    </section>
+
+    <!-- ------------------------------ a folha ------------------------------ -->
+    <div class="folha-area">
+      <p class="folha-legenda">Isto é o que a cliente recebe. Custo, imposto, líquido e piso nunca aparecem aqui.</p>
+      <div class="folha" id="folha"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* O motor de cálculo, exatamente o mesmo arquivo que roda no Apps Script. */
+__MOTOR__
+</script>
+
+<script>
+(function () {
+  'use strict';
+
+  var cfg = carregarConfig_();
+  var LOGO = '__LOGO_FINI__';
+
+  var campo = {
+    cliente: document.getElementById('cliente'),
+    data: document.getElementById('data'),
+    local: document.getElementById('local'),
+    freteInformado: document.getElementById('frete-informado'),
+    linhaFrete: document.getElementById('linha-frete'),
+    base: document.getElementById('base'),
+    quantidade: document.getElementById('quantidade'),
+    rotuloQuantidade: document.getElementById('rotulo-quantidade'),
+    inicio: document.getElementById('inicio'),
+    fim: document.getElementById('fim')
+  };
+  var folha = document.getElementById('folha');
+  var recados = document.getElementById('recados');
+  var tabelaInterna = document.getElementById('tabela-interna');
+  var notaPiso = document.getElementById('nota-piso');
+
+  function escapar(s) {
+    return String(s === null || s === undefined ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function dataPorExtenso(iso) {
+    if (!iso) return '';
+    var p = iso.split('-');
+    return p[2] + '/' + p[1] + '/' + p[0];
+  }
+
+  function montarPedido() {
+    var outra = campo.local.value === '__outra';
+    campo.linhaFrete.hidden = !outra;
+    var ehKg = campo.base.value === 'kg';
+    campo.rotuloQuantidade.textContent = ehKg ? 'Kg' : 'Convidados';
+    campo.quantidade.step = ehKg ? '0.5' : '1';
+
+    var pedido = {
+      cliente: campo.cliente.value.trim(),
+      data: dataPorExtenso(campo.data.value),
+      local: outra ? 'Outra cidade' : campo.local.value,
+      hora_inicio: campo.inicio.value,
+      hora_fim: campo.fim.value
+    };
+    var q = parseFloat(campo.quantidade.value);
+    if (!isNaN(q)) { if (ehKg) pedido.kg = q; else pedido.convidados = q; }
+    if (outra) pedido.frete_informado = parseFloat(campo.freteInformado.value);
+    return pedido;
+  }
+
+  var ICONES = {
+    relogio: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.4l3.4 2" stroke-linecap="round"/></svg>',
+    promotor: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20.5c0-4 3.4-6.6 7.5-6.6s7.5 2.6 7.5 6.6" stroke-linecap="round"/></svg>',
+    saquinho: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M5 8h14l-1.2 12.2H6.2z" stroke-linejoin="round"/><path d="M9 8V5.6A3 3 0 0 1 15 5.6V8" stroke-linecap="round"/></svg>',
+    pagamento: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12.5" rx="2.4"/><path d="M2.5 10.3h19" stroke-linecap="round"/></svg>'
+  };
+
+  function opcoesDeBalas(o) {
+    var itens = [];
+    if (o.balas) itens.push(o.balas + (o.balas > 1 ? ' opções de balas' : ' opção de bala'));
+    if (o.marshmallows) itens.push(o.marshmallows + (o.marshmallows > 1 ? ' opções de marshmallow' : ' opção de marshmallow'));
+    return '<ul class="lista-balas">' + itens.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ul>';
+  }
+
+  function desenharFolha(r) {
+    var ops = r.publico;
+    var sugerida = ops.length === 3 ? 1 : -1;   // a do meio é a que o motor escolhe sozinho
+    var n = ops.length;
+    var cabecalhoCliente = [];
+    if (r.cliente) cabecalhoCliente.push(escapar(r.cliente));
+    if (ops[0].data) cabecalhoCliente.push(ops[0].data);
+    if (r.local) cabecalhoCliente.push(escapar(r.local));
+
+    function linha(rotulo, celulas) {
+      return '<div class="grade-linha" style="--n:' + n + '">' +
+        '<div class="grade-rotulo">' + rotulo + '</div>' +
+        celulas.map(function (c, i) {
+          return '<div class="celula' + (i === sugerida ? ' sugerida' : '') + '">' + c + '</div>';
+        }).join('') + '</div>';
+    }
+
+    folha.className = 'folha transicao';
+    folha.innerHTML =
+      '<div class="folha-topo">' +
+        '<p class="folha-eyebrow">Fini Carrinhos</p>' +
+        '<h3>Orçamento</h3>' +
+        (cabecalhoCliente.length ? '<p class="folha-sub">' + cabecalhoCliente.join(' · ') + '</p>' : '') +
+      '</div>' +
+
+      '<div class="grade">' +
+        linha('Quantidade:', ops.map(function (o, i) {
+          return '<span class="selo-kg">' + String(o.kg).replace('.', ',') + ' kg</span>' +
+                 (i === sugerida ? '<span class="marca-sugerida">sugerida</span>' : '');
+        })) +
+        linha('Valor:', ops.map(function (o) {
+          return '<span class="pilula-valor"><span class="vezes">' + o.parcelas + 'x</span>' +
+                 '<span class="cifra">R$</span><span class="quanto">' + formatarReais_(o.valor_parcela) + '</span></span>' +
+                 '<span class="total-abaixo">R$ ' + formatarReais_(o.total_geral) + '</span>';
+        })) +
+        linha('Opções de<br>balas:', ops.map(opcoesDeBalas)) +
+      '</div>' +
+
+      '<div class="onda"></div>' +
+      '<div class="faixa">' +
+        '<span class="faixa-titulo">O que está incluso</span>' +
+        '<div class="inclusos">' +
+          '<div class="incluso">' + ICONES.relogio + '<span><b>Duração:</b><br>' + String(ops[0].duracao_horas).replace('.', ',') + ' horas.</span></div>' +
+          '<div class="incluso">' + ICONES.promotor + '<span>Promotor(a) Fini para servir os convidados.</span></div>' +
+          '<div class="incluso">' + ICONES.saquinho + '<span>Saquinho zip Fini para embalagens.</span></div>' +
+        '</div>' +
+        '<p class="notas">*Consultar valores para horas adicionais<br>*Valor adicional para eventos de madrugada</p>' +
+      '</div>' +
+
+      '<div class="onda"></div>' +
+      '<div class="faixa">' +
+        '<span class="faixa-titulo">Frete</span>' +
+        '<div class="fretes">' +
+          r.tabela_frete.map(function (f) {
+            var atual = f.texto === 'Incluso';
+            return '<div class="frete-linha' + (atual ? ' atual' : '') + '">' +
+                   '<span class="frete-nome">' + escapar(f.regiao) + '</span>' +
+                   '<span class="frete-valor">' + escapar(f.texto) + '</span></div>';
+          }).join('') +
+        '</div>' +
+      '</div>' +
+
+      '<div class="onda"></div>' +
+      '<div class="faixa">' +
+        '<span class="faixa-titulo">Forma de Pagamento</span>' +
+        '<div class="pagamento">' + ICONES.pagamento + '<span>Pix e Cartão de crédito.</span></div>' +
+      '</div>' +
+
+      '<div class="folha-pe"><img src="' + LOGO + '" alt="Fini"></div>';
+  }
+
+  function desenharInterno(r) {
+    var ops = r.interno;
+    var pub = r.publico;
+    var linhas = [
+      ['Total geral',        function (i) { return 'R$ ' + formatarReais_(i.total_geral); }, true],
+      ['Valor por convidado',function (i) { return i.valor_por_convidado ? 'R$ ' + formatarReais_(i.valor_por_convidado) : '—'; }],
+      ['Gramas por convidado', function (i) { return i.g_por_convidado ? String(Math.round(i.g_por_convidado)).replace('.', ',') + ' g' : '—'; }],
+      ['Imposto 8,5%',       function (i) { return '− ' + formatarReais_(i.imposto); }],
+      ['Custo das balas',    function (i) { return '− ' + formatarReais_(i.custo_balas); }],
+      ['Frete',              function (i) { return '− ' + formatarReais_(i.frete); }],
+      ['Promotor',           function (i) { return '− ' + formatarReais_(i.promotor); }],
+      ['Líquido',            function (i) { return 'R$ ' + formatarReais_(i.liquido); }, true]
+    ];
+
+    var html = '<thead><tr><th>Por opção</th>' +
+      pub.map(function (o) { return '<th>' + String(o.kg).replace('.', ',') + ' kg</th>'; }).join('') +
+      '</tr></thead><tbody>';
+
+    linhas.forEach(function (l) {
+      html += '<tr' + (l[2] ? ' class="destaque"' : '') + '><td>' + l[0] + '</td>' +
+        ops.map(function (i) { return '<td>' + l[1](i) + '</td>'; }).join('') + '</tr>';
+    });
+
+    html += '<tr><td>Piso da margem</td>' + ops.map(function (i) {
+      var p = i.piso;
+      var texto = p.status === 'ok' ? 'ok' : (p.status === 'atencao' ? 'atenção' : 'abaixo');
+      return '<td><span class="chip ' + p.status + '">' + texto + '</span></td>';
+    }).join('') + '</tr>';
+
+    html += '<tr><td>Até onde dá pra baixar</td>' + ops.map(function (i, idx) {
+      var minimo = precoMinimo_(i.piso.piso_min, pub[idx].kg, i.frete, i.promotor, i.comissao, cfg);
+      return '<td>R$ ' + formatarReais_(minimo.preco_minimo) + '</td>';
+    }).join('') + '</tr>';
+
+    html += '</tbody>';
+    tabelaInterna.innerHTML = html;
+
+    var p = ops[0].piso;
+    notaPiso.textContent = 'Piso de ' + (p.contexto === 'semana' ? 'dia de semana' : 'fim de semana') +
+      ': R$ ' + formatarReais_(p.piso_min) + ' a R$ ' + formatarReais_(p.piso_max) +
+      ' por evento. O agente sinaliza, nunca recusa — a decisão é sua.';
+  }
+
+  function recalcular() {
+    var pedido = montarPedido();
+    var r = orcarOpcoes(pedido, cfg);
+
+    if (!r.ok) {
+      recados.className = 'recado erro';
+      recados.innerHTML = escapar(r.pergunta || ('Faltando: ' + (r.faltando || []).join(', ')));
+      return;
+    }
+
+    var avisos = [];
+    r.interno.forEach(function (i) {
+      (i.avisos || []).forEach(function (a) { if (avisos.indexOf(a) === -1) avisos.push(a); });
+    });
+    if (avisos.length) {
+      recados.className = 'recado';
+      recados.innerHTML = '<b>Atenção</b><ul>' + avisos.map(function (a) { return '<li>' + escapar(a) + '</li>'; }).join('') + '</ul>';
+    } else {
+      recados.className = 'recado';
+      recados.innerHTML = '';
+    }
+
+    desenharFolha(r);
+    desenharInterno(r);
+  }
+
+  Object.keys(campo).forEach(function (k) {
+    var el = campo[k];
+    if (el && (el.tagName === 'INPUT' || el.tagName === 'SELECT')) {
+      el.addEventListener('input', recalcular);
+      el.addEventListener('change', recalcular);
+    }
+  });
+
+  recalcular();
+})();
+</script>
