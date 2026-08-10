@@ -339,6 +339,75 @@
     },
 
     {
+      "id": "apresentacao-50-convidados",
+      "grupo": "Página do cliente — 3 opções lado a lado",
+      "nota": "reproduz a apresentação real de 50 convidados: 8 / 8,5 / 9 kg com 3x de 460 / 482,50 / 505",
+      "acao": "orcarOpcoes",
+      "entrada": { "local": "São Paulo", "convidados": 50 },
+      "espera": {
+        "publico.0.kg": 8,
+        "publico.0.total_geral": 1380,
+        "publico.0.valor_parcela": 460,
+        "publico.0.balas": 7,
+        "publico.0.marshmallows": 2,
+        "publico.1.kg": 8.5,
+        "publico.1.total_geral": 1447.5,
+        "publico.1.valor_parcela": 482.5,
+        "publico.1.balas": 8,
+        "publico.1.marshmallows": 1,
+        "publico.2.kg": 9,
+        "publico.2.total_geral": 1515,
+        "publico.2.valor_parcela": 505,
+        "publico.2.balas": 9,
+        "publico.2.marshmallows": 0
+      }
+    },
+    {
+      "id": "apresentacao-kg-fixo",
+      "grupo": "Página do cliente — 3 opções lado a lado",
+      "nota": "com kg informado é pedido específico, não escolha: uma opção só",
+      "acao": "orcarOpcoes",
+      "entrada": { "local": "São Paulo", "kg": 12 },
+      "espera": { "publico.0.total_geral": 1920, "publico.length": 1 }
+    },
+    {
+      "id": "tabela-frete-na-apresentacao",
+      "grupo": "Página do cliente — 3 opções lado a lado",
+      "nota": "a página mostra o acréscimo de cada região sobre o frete já embutido no total",
+      "acao": "orcarOpcoes",
+      "entrada": { "local": "São Paulo", "convidados": 50 },
+      "espera": {
+        "tabela_frete.0.regiao": "ABC",
+        "tabela_frete.0.texto": "+ R$ 50,00",
+        "tabela_frete.1.texto": "+ R$ 100,00",
+        "tabela_frete.3.regiao": "São Paulo",
+        "tabela_frete.3.texto": "Incluso",
+        "tabela_frete.4.texto": "Consultar"
+      }
+    },
+
+    {
+      "id": "planilha-do-will",
+      "grupo": "Planilha interna do Will",
+      "nota": "reproduz linha a linha a tabela que ele usa hoje para montar o orçamento de 50 convidados",
+      "acao": "orcar",
+      "entrada": { "local": "São Paulo", "convidados": 50, "kg": 8 },
+      "espera": {
+        "interno.preco_kg": 135,
+        "interno.total_balas": 1080,
+        "interno.frete": 150,
+        "interno.promotor": 150,
+        "interno.total_geral": 1380,
+        "interno.valor_por_convidado": 27.6,
+        "interno.g_por_convidado": 160,
+        "interno.imposto": 117.3,
+        "interno.comissao": 0,
+        "interno.custo_balas": 253.44,
+        "interno.liquido": 709.26
+      }
+    },
+
+    {
       "id": "monotonia",
       "grupo": "Invariantes",
       "nota": "o total tem de crescer com o kg em toda a faixa — o trecho entre 12 e 15 kg é o de risco, porque é onde a taxa cai",

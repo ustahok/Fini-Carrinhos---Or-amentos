@@ -53,6 +53,15 @@ A fonte normativa é `spec.md` (v1.1, escrita pelo Will). Resumo do que importa:
   implemente como validação (spec §3).
 - **Escada convidados → kg:** tabela **curada**, não fórmula. g/convidado é
   rótulo derivado, não regra de conversão.
+- **A página do cliente mostra TRÊS opções de kg lado a lado**, não uma — é o
+  formato da apresentação real. Use `orcarOpcoes`, não `orcar`, para gerar o que
+  vai ao cliente. `orcar` (uma opção) serve quando o kg foi pedido explicitamente.
+
+### Nota sobre o imposto
+
+A planilha que o Will usa hoje rotula a linha como **"Imposto (aprox) 9%"**, mas
+o valor que ela calcula é 8,5% (117,30 sobre 1.380 — 9% daria 124,20). O rótulo
+é cosmético; a alíquota real, e a que está implementada, é **8,5%**.
 
 ## Arquitetura
 
@@ -75,9 +84,11 @@ para rodar igual no Apps Script e no Node. É isso que permite
 node testes/runner.js
 ```
 
-37 casos, todos ancorados em valores reais: os 10 pontos publicados nas
-apresentações, o caso de líquido da spec §6 (709,26) e o Grupo TOP da §8
-(2.579,58 / 2.798,16). **Rode antes de qualquer commit que toque em `codigo.gs`.**
+41 casos, todos ancorados em valores reais: os 10 pontos publicados nas
+apresentações, a página de 50 convidados inteira (8 / 8,5 / 9 kg com 3x de
+460 / 482,50 / 505), a planilha interna do Will linha a linha, o caso de líquido
+da spec §6 (709,26) e o Grupo TOP da §8 (2.579,58 / 2.798,16).
+**Rode antes de qualquer commit que toque em `codigo.gs`.**
 Se um caso quebrar, ou o motor está errado, ou a regra mudou e `spec.md` precisa
 ser atualizada junto.
 

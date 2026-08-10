@@ -17,7 +17,7 @@ const fonte = fs.readFileSync(path.join(RAIZ, 'codigo.gs'), 'utf8');
 const suite = JSON.parse(fs.readFileSync(path.join(__dirname, 'casos.json'), 'utf8'));
 
 const motor = new Function(
-  fonte + '\nreturn { orcar, orcarAcao, precoMinimo_, kgMaximo_, carregarConfig_ };'
+  fonte + '\nreturn { orcar, orcarOpcoes, orcarAcao, precoMinimo_, kgMaximo_, carregarConfig_ };'
 )();
 
 const cfg = motor.carregarConfig_();
@@ -48,6 +48,8 @@ function executar(caso) {
   switch (caso.acao) {
     case 'orcar':
       return motor.orcar(e, cfg);
+    case 'orcarOpcoes':
+      return motor.orcarOpcoes(e, cfg);
     case 'orcarAcao':
       return motor.orcarAcao(e.eventos, e.opcoes, cfg);
     case 'precoMinimo':

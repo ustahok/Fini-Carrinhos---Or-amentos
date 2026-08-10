@@ -101,6 +101,12 @@ function arredondar_(v) {
   return Math.round((v + Number.EPSILON) * 100) / 100;
 }
 
+/** 1380.5 -> "1.380,50". Formato brasileiro, para os textos que o cliente lê. */
+function formatarReais_(v) {
+  var n = arredondar_(Math.abs(v)).toFixed(2).split('.');
+  return n[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + n[1];
+}
+
 function normalizar_(s) {
   if (s === null || s === undefined) return '';
   return String(s)
@@ -560,6 +566,10 @@ function orcar(evento, config) {
     publico: montarBlocoPublico_(base),
     interno: {
       total_geral: base.total_geral,
+      total_balas: base.total_balas,
+      preco_kg: base.preco_kg,
+      valor_por_convidado: base.convidados ? arredondar_(base.total_geral / base.convidados) : null,
+      g_por_convidado: base.convidados ? arredondar_(base.kg * 1000 / base.convidados) : null,
       imposto: fin.imposto,
       custo_balas: fin.custo_balas,
       frete: fin.frete,
@@ -571,6 +581,68 @@ function orcar(evento, config) {
     },
     detalhe: base
   };
+}
+
+/**
+ * A apresentação que vai ao cliente mostra TRÊS opções de kg lado a lado, não
+ * uma. Esta função devolve as opções já precificadas, na ordem da escada.
+ *
+ * Com `kg` informado, devolve uma opção só — foi um pedido específico, não uma
+ * escolha a oferecer.
+ */
+function orcarOpcoes(pedido, config) {
+  var cfg = config || carregarConfig_();
+  var convidados = paraNumero_(pedido.convidados);
+  var kgInformado = paraNumero_(pedido.kg);
+
+  var listaKg;
+  if (kgInformado !== null) {
+    listaKg = [kgInformado];
+  } else if (convidados !== null) {
+    listaKg = kgPorConvidados_(convidados, cfg.escada, cfg).opcoes;
+  } else {
+    return { ok: false, faltando: ['convidados ou kg'] };
+  }
+
+  var opcoes = [];
+  for (var i = 0; i < listaKg.length; i++) {
+    var evento = {};
+    for (var k in pedido) evento[k] = pedido[k];
+    evento.kg = listaKg[i];
+    var r = orcar(evento, cfg);
+    if (!r.ok) return r;                    // falta local ou frete: pergunta antes de seguir
+    opcoes.push(r);
+  }
+
+  return {
+    ok: true,
+    tipo: 'opcoes',
+    cliente: pedido.cliente || null,
+    data: pedido.data || null,
+    local: pedido.local,
+    convidados: convidados,
+    regiao_frete: opcoes[0].detalhe.regiao_frete,
+    publico: opcoes.map(function (o) { return o.publico; }),
+    interno: opcoes.map(function (o) { return o.interno; }),
+    // Tabela de frete mostrada na apresentação: a diferença de cada região em
+    // relação à do orçamento, para o cliente ver o acréscimo caso mude o local.
+    tabela_frete: montarTabelaFrete_(opcoes[0].detalhe.frete, cfg)
+  };
+}
+
+/** Regiões e o acréscimo de cada uma sobre o frete já embutido no total. */
+function montarTabelaFrete_(freteBase, cfg) {
+  return (cfg.frete || FRETE_PADRAO).map(function (linha) {
+    if (linha.arbitra === false || linha.valor === null) {
+      return { regiao: linha.regiao, texto: 'Consultar' };
+    }
+    var dif = arredondar_(linha.valor - freteBase);
+    return {
+      regiao: linha.regiao,
+      diferenca: dif,
+      texto: dif === 0 ? 'Incluso' : (dif > 0 ? '+ R$ ' : '− R$ ') + formatarReais_(dif)
+    };
+  }).concat([{ regiao: 'Demais cidades', texto: 'Consultar' }]);
 }
 
 /**
@@ -789,6 +861,9 @@ function doPost(e) {
       case 'orcar':
         resposta = orcar(body.evento || body, cfg);
         if (resposta.ok) resposta.id = registrarOrcamento_(resposta, body.origem);
+        break;
+      case 'orcarOpcoes':
+        resposta = orcarOpcoes(body.pedido || body, cfg);
         break;
       case 'orcarAcao':
         resposta = orcarAcao(body.eventos, body.opcoes, cfg);
