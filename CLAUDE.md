@@ -105,8 +105,29 @@ Dois invariantes que valem a pena entender antes de mexer:
 Rosa `#E83278` · roxo `#554596` · amarelo `#FFEE00` · fundo `#f0eef8`.
 Fontes Nunito e FiniFun. As apresentações usam amarelo com pílulas vermelhas.
 
-## Estado
+## Partes
 
-- **Passo 1 — motor + testes: pronto.**
-- Passo 2 — template Slides e geração da imagem: pendente.
-- Passo 3 — extrator Claude, cenário Make e BotConversa: pendente.
+| Parte | O que é | Estado |
+|---|---|---|
+| 0 | Motor determinístico + testes | **pronto** — 45 casos |
+| 1 | WhatsApp: manda mensagem, recebe o valor em texto | **código pronto**, cenário Make a montar (`make/README.md`) |
+| 2 | Imagem do orçamento | prévia em `preview/`, produção pendente |
+| 3 | ClickUp / Olist | fora de escopo |
+
+A Parte 1 é a que muda o dia do Will. A imagem é acabamento — não construa a
+Parte 2 antes da 1 estar rodando.
+
+## Conta do Make (levantado, não suposto)
+
+- Team `1194397`, org `4735692`, plano Core (40.000 ops/mês; um orçamento gasta ~6)
+- **Data Store 128074** `Chaves API`, key `anthropic` → campo `api_key`
+- **BotConversa não é app nativo**: HTTP com header `API-KEY`.
+  `GET /api/v1/webhook/subscriber/get_by_phone/{fone}/` e
+  `POST /api/v1/webhook/subscriber/{id}/send_message/` body `{"type":"text","value":…}`
+- O Will já é assinante do BotConversa (`William K`, id `817824596`)
+- O cenário 5881210 (OCR de nota) é o modelo da chamada Anthropic:
+  `claude-opus-5` + `output_config.format.json_schema`
+
+⚠️ Escritas no MCP do Make exigem aprovação interativa. Sem ela, entregue
+receita em `make/README.md` — não invente blueprint com nome de módulo não
+verificado, porque falha na importação e custa mais tempo do que economiza.

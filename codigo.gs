@@ -624,6 +624,7 @@ function orcarOpcoes(pedido, config) {
     regiao_frete: opcoes[0].detalhe.regiao_frete,
     publico: opcoes.map(function (o) { return o.publico; }),
     interno: opcoes.map(function (o) { return o.interno; }),
+    detalhe: opcoes.map(function (o) { return o.detalhe; }),
     // Tabela de frete mostrada na apresentação: a diferença de cada região em
     // relação à do orçamento, para o cliente ver o acréscimo caso mude o local.
     tabela_frete: montarTabelaFrete_(opcoes[0].detalhe.frete, cfg)
@@ -719,6 +720,108 @@ function montarBlocoPublico_(base) {
     inclusos: ['Promotor(a) Fini para servir os convidados', 'Saquinho zip Fini para embalagens'],
     condicoes: 'Pix ou cartão de crédito · ' + base.parcelas + 'x sem juros'
   };
+}
+
+// ---------------------------------------------------------------------------
+// Mensagens de WhatsApp
+//
+// A formatação mora aqui, e não no cenário Make, porque é texto derivado de
+// número: pertence ao motor e entra nos testes. O `texto_cliente` é coberto pelo
+// mesmo invariante de vazamento que protege o bloco `publico` — se um dia alguém
+// escorregar e imprimir o líquido ali, o teste quebra antes do commit.
+// ---------------------------------------------------------------------------
+
+/** Devolve { texto_cliente, texto_interno } a partir de orcarOpcoes. */
+function formatarWhatsApp(resultado, config) {
+  var cfg = config || carregarConfig_();
+  var ops = resultado.publico;
+  var internos = resultado.interno;
+  var sugerida = ops.length === 3 ? 1 : -1;
+
+  // ------------------------- o que a cliente lê -------------------------
+  var cli = ['*FINI CARRINHOS · ORÇAMENTO*'];
+
+  var identificacao = [];
+  if (resultado.cliente) identificacao.push(resultado.cliente);
+  if (ops[0].data) identificacao.push(ops[0].data);
+  if (resultado.local) identificacao.push(resultado.local);
+  if (identificacao.length) cli.push(identificacao.join(' · '));
+
+  ops.forEach(function (o, i) {
+    var opcoes = [];
+    if (o.balas) opcoes.push(o.balas + (o.balas > 1 ? ' opções de balas' : ' opção de bala'));
+    if (o.marshmallows) {
+      opcoes.push(o.marshmallows + (o.marshmallows > 1 ? ' opções de marshmallow' : ' opção de marshmallow'));
+    }
+    cli.push('');
+    cli.push('*' + String(o.kg).replace('.', ',') + ' kg*' + (i === sugerida ? '  _(sugerida)_' : ''));
+    cli.push(o.parcelas + 'x de R$ ' + formatarReais_(o.valor_parcela) +
+             '  ·  total R$ ' + formatarReais_(o.total_geral));
+    if (opcoes.length) cli.push('_' + opcoes.join(' · ') + '_');
+  });
+
+  cli.push('');
+  cli.push('*O que está incluso*');
+  cli.push('• Duração de ' + String(ops[0].duracao_horas).replace('.', ',') + ' horas');
+  ops[0].inclusos.forEach(function (t) { cli.push('• ' + t); });
+
+  cli.push('');
+  cli.push('*Frete*');
+  cli.push(resultado.regiao_frete ? 'Incluso para ' + resultado.regiao_frete : 'Incluso');
+
+  cli.push('');
+  cli.push('*Pagamento*');
+  cli.push(ops[0].condicoes);
+
+  // ------------------------- o que só o Will lê -------------------------
+  var tabela = [
+    [''].concat(ops.map(function (o) { return String(o.kg).replace('.', ',') + ' kg'; })),
+    ['Total'].concat(internos.map(function (i) { return formatarReais_(i.total_geral); })),
+    ['Líquido'].concat(internos.map(function (i) { return formatarReais_(i.liquido); })),
+    ['Mínimo'].concat(internos.map(function (i, idx) {
+      var m = precoMinimo_(i.piso.piso_min, ops[idx].kg, i.frete, i.promotor, i.comissao, cfg);
+      return formatarReais_(m.preco_minimo);
+    }))
+  ];
+  var larguras = tabela[0].map(function (_, c) {
+    return Math.max.apply(null, tabela.map(function (linha) { return String(linha[c]).length; }));
+  });
+  var grade = tabela.map(function (linha) {
+    return linha.map(function (v, c) {
+      return c === 0 ? String(v).padEnd(larguras[c]) : String(v).padStart(larguras[c]);
+    }).join('  ');
+  }).join('\n');
+
+  var rotulos = { ok: 'ok', atencao: 'atenção', abaixo: 'ABAIXO DO PISO' };
+  var piso = internos[0].piso;
+
+  var op = ['🔒 *Só você vê*', '```', grade, '```'];
+
+  op.push('Piso R$ ' + formatarReais_(piso.piso_min) + ' a R$ ' + formatarReais_(piso.piso_max) +
+          ' (' + (piso.contexto === 'semana' ? 'dia de semana' : 'fim de semana') + ')  ·  ' +
+          internos.map(function (i) { return rotulos[i.piso.status]; }).join(' · '));
+  op.push('Frete R$ ' + formatarReais_(internos[0].frete) +
+          '  ·  Promotor R$ ' + formatarReais_(internos[0].promotor) +
+          '  ·  Imposto ' + formatarReais_(cfg.aliquota_imposto * 100) + '%');
+
+  // Referência na opção que o motor sugere, não na primeira da lista.
+  var ref = sugerida >= 0 ? sugerida : 0;
+  if (internos[ref].valor_por_convidado) {
+    op.push('Por convidado R$ ' + formatarReais_(internos[ref].valor_por_convidado) +
+            '  ·  ' + Math.round(internos[ref].g_por_convidado) + ' g/pessoa' +
+            (ops.length > 1 ? ' (na opção de ' + String(ops[ref].kg).replace('.', ',') + ' kg)' : ''));
+  }
+
+  var avisos = [];
+  internos.forEach(function (i) {
+    (i.avisos || []).forEach(function (a) { if (avisos.indexOf(a) === -1) avisos.push(a); });
+  });
+  if (avisos.length) {
+    op.push('');
+    op.push('⚠️ ' + avisos.join('\n⚠️ '));
+  }
+
+  return { texto_cliente: cli.join('\n'), texto_interno: op.join('\n') };
 }
 
 // ---------------------------------------------------------------------------
@@ -849,14 +952,56 @@ function registrarOrcamento_(resultado, origem) {
 // Endpoint HTTP
 // ---------------------------------------------------------------------------
 
+/**
+ * O Web App é publicado com acesso "qualquer pessoa" (o Make precisa chamar sem
+ * OAuth), então a URL sozinha não protege nada. Se a Script Property SEGREDO
+ * estiver definida, todo pedido precisa trazer o mesmo valor em `segredo`.
+ *
+ * Sem a propriedade definida o endpoint fica aberto — de propósito, para o motor
+ * funcionar antes de qualquer configuração. O `ping` avisa quando é esse o caso.
+ * O que está exposto é cálculo de preço de tabela, não dado de cliente.
+ */
+function segredoConfigurado_() {
+  if (typeof PropertiesService === 'undefined') return null;
+  try {
+    return PropertiesService.getScriptProperties().getProperty('SEGREDO') || null;
+  } catch (err) {
+    return null;
+  }
+}
+
 function doPost(e) {
   var resposta;
   try {
     var body = JSON.parse(e.postData.contents);
     var cfg = carregarConfig_();
+
+    var esperado = segredoConfigurado_();
+    if (esperado && body.segredo !== esperado) {
+      return ContentService.createTextOutput(JSON.stringify({ ok: false, erro: 'Segredo inválido.' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     switch (body.action) {
       case 'ping':
-        resposta = { ok: true, versao: '1.0', passo: 'motor' };
+        resposta = {
+          ok: true,
+          versao: '1.1',
+          passo: 'motor + whatsapp',
+          segredo: esperado ? 'configurado' : 'NÃO CONFIGURADO — endpoint aberto'
+        };
+        break;
+      case 'orcarWhatsApp':
+        resposta = orcarOpcoes(body.pedido || body, cfg);
+        if (resposta.ok) {
+          var textos = formatarWhatsApp(resposta, cfg);
+          resposta.texto_cliente = textos.texto_cliente;
+          resposta.texto_interno = textos.texto_interno;
+          resposta.id = registrarOrcamento_(
+            { publico: resposta.publico[0], interno: resposta.interno[0], detalhe: resposta.detalhe[0] },
+            body.origem || 'whatsapp'
+          );
+        }
         break;
       case 'orcar':
         resposta = orcar(body.evento || body, cfg);

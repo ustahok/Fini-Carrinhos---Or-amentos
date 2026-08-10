@@ -1,0 +1,74 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "cliente",
+    "data",
+    "local",
+    "hora_inicio",
+    "hora_fim",
+    "convidados",
+    "kg",
+    "baleiros",
+    "marshmallows",
+    "frete_informado",
+    "comissao",
+    "observacao",
+    "faltando"
+  ],
+  "properties": {
+    "cliente": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "description": "Nome de quem contrata ou do aniversariante, como escrito na mensagem. Null se não foi dito."
+    },
+    "data": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "description": "Data do evento em DD/MM/AAAA. Se o ano não foi dito, use o ano informado em DATA_DE_HOJE, ou o seguinte caso a data já tenha passado. Null se não foi dita."
+    },
+    "local": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "description": "Cidade, bairro ou endereço do evento, como escrito. Não corrija, não complete, não normalize. Null se não foi dito."
+    },
+    "hora_inicio": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "description": "Hora de início da festa em HH:MM, 24 horas. Null se não foi dita."
+    },
+    "hora_fim": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "description": "Hora de término da festa em HH:MM, 24 horas. Null se não foi dita."
+    },
+    "convidados": {
+      "anyOf": [{ "type": "integer" }, { "type": "null" }],
+      "description": "Número de convidados. Null se não foi dito."
+    },
+    "kg": {
+      "anyOf": [{ "type": "number" }, { "type": "null" }],
+      "description": "Quilos de bala, apenas se pedidos explicitamente na mensagem. NUNCA calcule kg a partir do número de convidados. Null se não foi dito."
+    },
+    "baleiros": {
+      "anyOf": [{ "type": "integer" }, { "type": "null" }],
+      "description": "Número de baleiros (opções no carrinho), apenas se pedido explicitamente. Normalmente 9, 12 ou 18. Null se não foi dito."
+    },
+    "marshmallows": {
+      "anyOf": [{ "type": "integer" }, { "type": "null" }],
+      "description": "Quantas das opções são marshmallow, apenas se pedido explicitamente. Null se não foi dito."
+    },
+    "frete_informado": {
+      "anyOf": [{ "type": "number" }, { "type": "null" }],
+      "description": "Valor do frete em reais, apenas quando o operador informa um número para uma cidade fora das faixas. Null nos demais casos."
+    },
+    "comissao": {
+      "anyOf": [{ "type": "number" }, { "type": "null" }],
+      "description": "Comissão em reais, apenas se dita. Null se não foi dita."
+    },
+    "observacao": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "description": "Qualquer pedido do operador que não caiba nos campos acima e que ele precise ver de volta. Null se não houver."
+    },
+    "faltando": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["local", "convidados ou kg"] },
+      "description": "Parâmetros obrigatórios ausentes depois da mesclagem. Inclua 'local' quando local for null. Inclua 'convidados ou kg' quando convidados E kg forem ambos null. Lista vazia quando não falta nada."
+    }
+  }
+}

@@ -408,6 +408,59 @@
     },
 
     {
+      "id": "whatsapp-100-convidados",
+      "grupo": "Mensagens de WhatsApp",
+      "nota": "o caso de aceite da Parte 1: 100 convidados em Santo André, sábado das 16h às 21h",
+      "acao": "whatsapp",
+      "entrada": {
+        "cliente": "Ana Beatriz",
+        "local": "Santo André",
+        "data": "12/09/2026",
+        "convidados": 100,
+        "hora_inicio": "16:00",
+        "hora_fim": "21:00"
+      },
+      "contemCliente": [
+        "FINI CARRINHOS",
+        "Ana Beatriz",
+        "Santo André",
+        "10,5 kg",
+        "11,5 kg",
+        "12 kg",
+        "3x de R$ 650,83",
+        "total R$ 1.952,50",
+        "Incluso para ABC",
+        "3x sem juros"
+      ],
+      "contemInterno": ["Só você vê", "1.022,22", "Piso R$ 700,00", "Imposto 8,50%"]
+    },
+    {
+      "id": "whatsapp-kg-fixo",
+      "grupo": "Mensagens de WhatsApp",
+      "nota": "kg informado gera uma opção só, e o frete informado à mão fecha o orçamento de Alphaville",
+      "acao": "whatsapp",
+      "entrada": { "local": "Alphaville", "kg": 12, "frete_informado": 300 },
+      "contemCliente": ["12 kg", "total R$ 2.070,00"],
+      "contemInterno": ["Só você vê", "Frete R$ 300,00"]
+    },
+    {
+      "id": "whatsapp-fora-da-escada",
+      "grupo": "Mensagens de WhatsApp",
+      "nota": "300 convidados está fora da tabela curada: o aviso aparece no bloco interno e o texto da cliente segue limpo",
+      "acao": "whatsapp",
+      "entrada": { "local": "São Paulo", "convidados": 300, "data": "12/09/2026" },
+      "contemInterno": ["g/convidado", "Confira antes de enviar"]
+    },
+    {
+      "id": "whatsapp-piso-furado",
+      "grupo": "Mensagens de WhatsApp",
+      "nota": "8 kg num sábado com R$ 100 de comissão derruba o líquido para 609,26, abaixo do piso de 700",
+      "acao": "whatsapp",
+      "entrada": { "local": "São Paulo", "kg": 8, "data": "12/09/2026", "comissao": 100 },
+      "contemInterno": ["ABAIXO DO PISO", "609,26"]
+    },
+
+    {
       "id": "monotonia",
       "grupo": "Invariantes",
       "nota": "o total tem de crescer com o kg em toda a faixa — o trecho entre 12 e 15 kg é o de risco, porque é onde a taxa cai",

@@ -17,7 +17,7 @@ const fonte = fs.readFileSync(path.join(RAIZ, 'codigo.gs'), 'utf8');
 const suite = JSON.parse(fs.readFileSync(path.join(__dirname, 'casos.json'), 'utf8'));
 
 const motor = new Function(
-  fonte + '\nreturn { orcar, orcarOpcoes, orcarAcao, precoMinimo_, kgMaximo_, carregarConfig_ };'
+  fonte + '\nreturn { orcar, orcarOpcoes, orcarAcao, formatarWhatsApp, precoMinimo_, kgMaximo_, carregarConfig_ };'
 )();
 
 const cfg = motor.carregarConfig_();
@@ -78,13 +78,43 @@ function verificarMonotonia(caso) {
   return falhas;
 }
 
+const PROIBIDOS = ['custo', 'imposto', 'liquido', 'líquido', 'piso', 'margem', 'comissao', 'comissão'];
+
 /** Nada de custo, imposto, líquido ou piso pode escapar para o bloco do cliente. */
 function verificarVazamento(caso) {
   const r = motor.orcar(caso.entrada, cfg);
   if (!r.ok) return ['orçamento não calculou'];
   const texto = JSON.stringify(r.publico).toLowerCase();
-  const proibidos = ['custo', 'imposto', 'liquido', 'líquido', 'piso', 'margem', 'comissao'];
-  return proibidos.filter((p) => texto.includes(p)).map((p) => `"${p}" apareceu no bloco público`);
+  return PROIBIDOS.filter((p) => texto.includes(p)).map((p) => `"${p}" apareceu no bloco público`);
+}
+
+/**
+ * O mesmo invariante, aplicado à string que de fato vai para a cliente pelo
+ * WhatsApp. O bloco `publico` estar limpo não basta se a formatação vazar.
+ */
+function verificarWhatsApp(caso) {
+  const r = motor.orcarOpcoes(caso.entrada, cfg);
+  if (!r.ok) return [`orçamento não calculou: ${r.pergunta || (r.faltando || []).join(', ')}`];
+
+  const { texto_cliente, texto_interno } = motor.formatarWhatsApp(r, cfg);
+  const erros = [];
+
+  const minusculo = texto_cliente.toLowerCase();
+  PROIBIDOS.forEach((p) => {
+    if (minusculo.includes(p)) erros.push(`"${p}" vazou para o texto da cliente`);
+  });
+
+  (caso.contemCliente || []).forEach((t) => {
+    if (!texto_cliente.includes(t)) erros.push(`texto da cliente não traz "${t}"`);
+  });
+  (caso.contemInterno || []).forEach((t) => {
+    if (!texto_interno.includes(t)) erros.push(`bloco interno não traz "${t}"`);
+  });
+
+  if (caso.mostrarTexto) {
+    console.log('\n' + texto_cliente + '\n\n---\n\n' + texto_interno + '\n');
+  }
+  return erros;
 }
 
 let passou = 0;
@@ -107,6 +137,8 @@ for (const caso of suite.casos) {
     erros = verificarMonotonia(caso);
   } else if (caso.acao === 'vazamento') {
     erros = verificarVazamento(caso);
+  } else if (caso.acao === 'whatsapp') {
+    erros = verificarWhatsApp(caso);
   } else {
     const resultado = executar(caso);
     for (const [caminho, esperado] of Object.entries(caso.espera || {})) {
