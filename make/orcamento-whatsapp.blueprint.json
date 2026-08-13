@@ -1,0 +1,489 @@
+{
+  "name": "ORCAMENTO - WhatsApp",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": {
+        "hook": 2687739,
+        "maxResults": 1
+      },
+      "mapper": {},
+      "metadata": {
+        "designer": {
+          "x": 0,
+          "y": 0,
+          "name": "Mensagem recebida"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "module": "util:SetVariables",
+      "version": 1,
+      "parameters": {},
+      "mapper": {
+        "scope": "roundtrip",
+        "variables": [
+          {
+            "name": "remetente",
+            "value": "{{ifempty(1.message.chat.id; ifempty(1.telefone; ifempty(1.phone; ifempty(1.subscriber_phone; emptystring))))}}"
+          },
+          {
+            "name": "mensagem",
+            "value": "{{replace(replace(ifempty(1.message.text; ifempty(1.mensagem; ifempty(1.texto; ifempty(1.text; emptystring)))); \"/[\\r\\n\\t]+/g\"; \" \"); \"/[\\x22\\\\]/g\"; \"'\")}}"
+          },
+          {
+            "name": "nome",
+            "value": "{{ifempty(1.message.from.first_name; ifempty(1.nome; ifempty(1.name; ifempty(1.full_name; emptystring))))}}"
+          },
+          {
+            "name": "hoje",
+            "value": "{{formatDate(now; \"DD/MM/YYYY\")}}"
+          }
+        ]
+      },
+      "metadata": {
+        "designer": {
+          "x": 300,
+          "y": 0,
+          "name": "Normaliza o que chegou"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "module": "datastore:GetRecord",
+      "version": 1,
+      "parameters": {
+        "datastore": 130845
+      },
+      "mapper": {
+        "key": "{{2.remetente}}",
+        "returnWrapped": false
+      },
+      "metadata": {
+        "designer": {
+          "x": 600,
+          "y": 0,
+          "name": "É operador autorizado?"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "module": "datastore:GetRecord",
+      "version": 1,
+      "parameters": {
+        "datastore": 130846
+      },
+      "mapper": {
+        "key": "{{2.remetente}}",
+        "returnWrapped": false
+      },
+      "filter": {
+        "name": "Só operador autorizado",
+        "conditions": [
+          [
+            {
+              "a": "{{3.nome}}",
+              "o": "exist"
+            }
+          ]
+        ]
+      },
+      "metadata": {
+        "designer": {
+          "x": 900,
+          "y": 0,
+          "name": "Pedido em aberto"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "module": "datastore:GetRecord",
+      "version": 1,
+      "parameters": {
+        "datastore": 128074
+      },
+      "mapper": {
+        "key": "anthropic",
+        "returnWrapped": false
+      },
+      "metadata": {
+        "designer": {
+          "x": 1200,
+          "y": 0,
+          "name": "Chave Anthropic"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "module": "datastore:GetRecord",
+      "version": 1,
+      "parameters": {
+        "datastore": 130848
+      },
+      "mapper": {
+        "key": "default",
+        "returnWrapped": false
+      },
+      "metadata": {
+        "designer": {
+          "x": 1500,
+          "y": 0,
+          "name": "Config (Web App + Telegram)"
+        }
+      }
+    },
+    {
+      "id": 7,
+      "module": "util:SetVariables",
+      "version": 1,
+      "parameters": {},
+      "mapper": {
+        "scope": "roundtrip",
+        "variables": [
+          {
+            "name": "pendente",
+            "value": "{{replace(ifempty(4.pedido; \"NENHUM\"); \"/[\\x22\\\\]/g\"; \"'\")}}"
+          }
+        ]
+      },
+      "metadata": {
+        "designer": {
+          "x": 1800,
+          "y": 0,
+          "name": "Pendente sem aspas"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "module": "http:MakeRequest",
+      "version": 4,
+      "parameters": {
+        "authenticationType": "noAuth"
+      },
+      "mapper": {
+        "parseResponse": true,
+        "stopOnHttpError": true,
+        "allowRedirects": true,
+        "shareCookies": false,
+        "requestCompressedContent": true,
+        "url": "https://api.anthropic.com/v1/messages",
+        "method": "post",
+        "headers": [
+          {
+            "name": "x-api-key",
+            "value": "{{5.api_key}}"
+          },
+          {
+            "name": "anthropic-version",
+            "value": "2023-06-01"
+          }
+        ],
+        "contentType": "json",
+        "inputMethod": "jsonString",
+        "jsonStringBodyContent": "{\n  \"model\": \"claude-opus-5\",\n  \"max_tokens\": 2000,\n  \"output_config\": {\n    \"effort\": \"low\",\n    \"format\": {\n      \"type\": \"json_schema\",\n      \"schema\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"required\": [\n          \"cliente\",\n          \"data\",\n          \"local\",\n          \"hora_inicio\",\n          \"hora_fim\",\n          \"convidados\",\n          \"kg\",\n          \"baleiros\",\n          \"marshmallows\",\n          \"frete_informado\",\n          \"comissao\",\n          \"observacao\",\n          \"faltando\"\n        ],\n        \"properties\": {\n          \"cliente\": {\n            \"anyOf\": [\n              {\n                \"type\": \"string\"\n              },\n              {\n                \"type\": \"null\"\n              }\n            ],\n            \"description\": \"Nome de quem contrata ou do aniversariante, como escrito na mensagem. Null se não foi dito.\"\n          },\n          \"data\": {\n            \"anyOf\": [\n              {\n                \"type\": \"string\"\n              },\n              {\n                \"type\": \"null\"\n              }\n            ],\n            \"description\": \"Data do evento em DD/MM/AAAA. Se o ano não foi dito, use o ano informado em DATA_DE_HOJE, ou o seguinte caso a data já tenha passado. Null se não foi dita.\"\n          },\n          \"local\": {\n            \"anyOf\": [\n              {\n                \"type\": \"string\"\n              },\n              {\n                \"type\": \"null\"\n              }\n            ],\n            \"description\": \"Cidade, bairro ou endereço do evento, como escrito. Não corrija, não complete, não normalize. Null se não foi dito.\"\n          },\n          \"hora_inicio\": {\n            \"anyOf\": [\n              {\n                \"type\": \"string\"\n              },\n              {\n                \"type\": \"null\"\n              }\n            ],\n            \"description\": \"Hora de início da festa em HH:MM, 24 horas. Null se não foi dita.\"\n          },\n          \"hora_fim\": {\n            \"anyOf\": [\n              {\n                \"type\": \"string\"\n              },\n              {\n                \"type\": \"null\"\n              }\n            ],\n            \"description\": \"Hora de término da festa em HH:MM, 24 horas. Null se não foi dita.\"\n          },\n          \"convidados\": {\n            \"anyOf\": [\n              {\n                \"type\": \"integer\"\n              },\n              {\n                \"type\": \"null\"\n              }\n            ],\n            \"description\": \"Número de convidados. Null se não foi dito.\"\n          },\n          \"kg\": {\n            \"anyOf\": [\n              {\n                \"type\": \"number\"\n              },\n              {\n                \"type\": \"null\"\n              }\n            ],\n            \"description\": \"Quilos de bala, apenas se pedidos explicitamente na mensagem. NUNCA calcule kg a partir do número de convidados. Null se não foi dito.\"\n          },\n          \"baleiros\": {\n            \"anyOf\": [\n              {\n                \"type\": \"integer\"\n              },\n              {\n                \"type\": \"null\"\n              }\n            ],\n            \"description\": \"Número de baleiros (opções no carrinho), apenas se pedido explicitamente. Normalmente 9, 12 ou 18. Null se não foi dito.\"\n          },\n          \"marshmallows\": {\n            \"anyOf\": [\n              {\n                \"type\": \"integer\"\n              },\n              {\n                \"type\": \"null\"\n              }\n            ],\n            \"description\": \"Quantas das opções são marshmallow, apenas se pedido explicitamente. Null se não foi dito.\"\n          },\n          \"frete_informado\": {\n            \"anyOf\": [\n              {\n                \"type\": \"number\"\n              },\n              {\n                \"type\": \"null\"\n              }\n            ],\n            \"description\": \"Valor do frete em reais, apenas quando o operador informa um número para uma cidade fora das faixas. Null nos demais casos.\"\n          },\n          \"comissao\": {\n            \"anyOf\": [\n              {\n                \"type\": \"number\"\n              },\n              {\n                \"type\": \"null\"\n              }\n            ],\n            \"description\": \"Comissão em reais, apenas se dita. Null se não foi dita.\"\n          },\n          \"observacao\": {\n            \"anyOf\": [\n              {\n                \"type\": \"string\"\n              },\n              {\n                \"type\": \"null\"\n              }\n            ],\n            \"description\": \"Qualquer pedido do operador que não caiba nos campos acima e que ele precise ver de volta. Null se não houver.\"\n          },\n          \"faltando\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"local\",\n                \"convidados ou kg\"\n              ]\n            },\n            \"description\": \"Parâmetros obrigatórios ausentes depois da mesclagem. Inclua 'local' quando local for null. Inclua 'convidados ou kg' quando convidados E kg forem ambos null. Lista vazia quando não falta nada.\"\n          }\n        }\n      }\n    }\n  },\n  \"system\": \"Você extrai parâmetros de pedidos de orçamento da Fini Carrinhos, uma empresa de\\r\\naluguel de carrinhos de bala para festas. Quem escreve é o operador da empresa,\\r\\nnão o cliente final.\\r\\n\\r\\nSeu único trabalho é ler a mensagem e preencher os campos do schema. Você não\\r\\ncalcula nada.\\r\\n\\r\\n### Regras\\r\\n\\r\\n**Nunca invente e nunca deduza um valor.** Se a informação não está escrita na\\r\\nmensagem, o campo é `null`. Não estime, não arredonde, não complete um endereço,\\r\\nnão corrija um nome de bairro.\\r\\n\\r\\n**Nunca converta convidados em quilos.** Essa conversão vem de uma tabela\\r\\ncomercial e não é sua. Uma mensagem que diz \\\"100 convidados\\\" preenche\\r\\n`convidados: 100` e deixa `kg: null`. Se você preencher `kg` a partir de\\r\\nconvidados, o orçamento sai errado.\\r\\n\\r\\n**Nunca produza preço, total, parcela, frete calculado ou peso por convidado.**\\r\\nEsses campos não existem no schema justamente porque não são seus.\\r\\n\\r\\n**`frete_informado` é a exceção que confirma a regra:** ele só é preenchido\\r\\nquando o operador digita um valor de frete, normalmente respondendo a uma\\r\\npergunta sua sobre uma cidade fora das faixas atendidas. Um valor solto numa\\r\\nmensagem de resposta (\\\"300\\\", \\\"uns 250\\\") é frete quando o pedido pendente estava\\r\\nesperando exatamente isso.\\r\\n\\r\\n**Mesclagem.** Quando `PEDIDO_PENDENTE` não for `NENHUM`, comece dele e aplique\\r\\npor cima o que a mensagem nova traz. Campo que já estava preenchido e não foi\\r\\nmencionado de novo continua como está. É assim que uma resposta curta completa o\\r\\npedido anterior em vez de começar um novo.\\r\\n\\r\\nUma exceção: se a mensagem nova claramente começa outro orçamento — outro\\r\\ncliente, outra data, outro evento — ignore o pendente e extraia só da mensagem\\r\\nnova.\\r\\n\\r\\n**Formatos.** Data em `DD/MM/AAAA`. Hora em `HH:MM`, 24 horas (\\\"8 da noite\\\" é\\r\\n`20:00`). Números sem separador de milhar e com ponto decimal.\\r\\n\\r\\n**Ano da data.** Se o operador escreve só dia e mês, use o ano de\\r\\n`DATA_DE_HOJE`. Se essa data já passou, use o ano seguinte — ninguém orça uma\\r\\nfesta que já aconteceu.\\r\\n\\r\\n**`faltando`.** Depois de mesclar, liste os obrigatórios ausentes:\\r\\n\\r\\n- `\\\"local\\\"` quando `local` ficou `null`\\r\\n- `\\\"convidados ou kg\\\"` quando `convidados` **e** `kg` ficaram os dois `null`\\r\\n\\r\\nSe não faltar nada, devolva lista vazia. O `faltando` é o que decide se o\\r\\noperador recebe uma pergunta ou o orçamento — errar aqui trava ou atropela o\\r\\nfluxo.\\r\\n\\r\\n**`observacao`** é para o que o operador pediu e não cabe em nenhum campo\\r\\n(\\\"manda em PDF\\\", \\\"ela quer só chiclete\\\", \\\"é evento corporativo\\\"). O operador vê\\r\\nesse texto de volta. Não use para repetir o que já está estruturado.\\r\\n\\r\\n### Exemplos\\r\\n\\r\\n`orçamento pra Ana, 15/09, Santo André, 100 convidados`\\r\\n→ cliente `Ana`, data `15/09/2026`, local `Santo André`, convidados `100`,\\r\\nkg `null`, faltando `[]`\\r\\n\\r\\n`orçamento 12 kg em Alphaville`\\r\\n→ local `Alphaville`, kg `12`, convidados `null`, faltando `[]`\\r\\n(kg foi dito, então não falta nada — quem decide se Alphaville tem frete de\\r\\ntabela é o motor, não você)\\r\\n\\r\\n`Marcos, 20/12, São Paulo, 150 convidados, das 20h à 1h`\\r\\n→ cliente `Marcos`, data `20/12/2026`, local `São Paulo`, convidados `150`,\\r\\nhora_inicio `20:00`, hora_fim `01:00`, faltando `[]`\\r\\n\\r\\n`quanto fica pra 80 pessoas?`\\r\\n→ convidados `80`, local `null`, faltando `[\\\"local\\\"]`\\r\\n\\r\\nPendente `{\\\"local\\\":\\\"Alphaville\\\",\\\"kg\\\":12,…}` + mensagem `300`\\r\\n→ o pendente inteiro, mais frete_informado `300`, faltando `[]`\\r\\n\\r\\n`orçamento pra festa da Bia`\\r\\n→ cliente `Bia`, todo o resto `null`, faltando `[\\\"local\\\",\\\"convidados ou kg\\\"]`\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"DATA_DE_HOJE: {{2.hoje}}\\n\\nPEDIDO_PENDENTE:\\n{{7.pendente}}\\n\\nMENSAGEM:\\n{{2.mensagem}}\"\n    }\n  ]\n}"
+      },
+      "metadata": {
+        "designer": {
+          "x": 2100,
+          "y": 0,
+          "name": "Extrator (Anthropic)"
+        }
+      }
+    },
+    {
+      "id": 9,
+      "module": "util:SetVariables",
+      "version": 1,
+      "parameters": {},
+      "mapper": {
+        "scope": "roundtrip",
+        "variables": [
+          {
+            "name": "extraido",
+            "value": "{{join(map(8.data.content; \"text\"; \"type\"; \"text\"); emptystring)}}"
+          }
+        ]
+      },
+      "metadata": {
+        "designer": {
+          "x": 2400,
+          "y": 0,
+          "name": "Texto da resposta"
+        }
+      }
+    },
+    {
+      "id": 10,
+      "module": "json:ParseJSON",
+      "version": 1,
+      "parameters": {
+        "type": 457735
+      },
+      "mapper": {
+        "json": "{{9.extraido}}"
+      },
+      "metadata": {
+        "designer": {
+          "x": 2700,
+          "y": 0,
+          "name": "Pedido extraído"
+        }
+      }
+    },
+    {
+      "id": 11,
+      "module": "builtin:BasicRouter",
+      "version": 1,
+      "mapper": null,
+      "metadata": {
+        "designer": {
+          "x": 3000,
+          "y": 0
+        }
+      },
+      "routes": [
+        {
+          "flow": [
+            {
+              "id": 12,
+              "module": "datastore:AddRecord",
+              "version": 1,
+              "parameters": {
+                "datastore": 130846
+              },
+              "mapper": {
+                "key": "{{2.remetente}}",
+                "overwrite": true,
+                "data": {
+                  "pedido": "{{9.extraido}}",
+                  "atualizado_em": "{{now}}",
+                  "ultima_mensagem": "{{2.mensagem}}"
+                }
+              },
+              "filter": {
+                "name": "Falta parâmetro",
+                "conditions": [
+                  [
+                    {
+                      "a": "{{if(length(10.faltando) > 0; \"sim\"; \"nao\")}}",
+                      "o": "text:equal",
+                      "b": "sim"
+                    }
+                  ]
+                ]
+              },
+              "metadata": {
+                "designer": {
+                  "x": 3300,
+                  "y": -150,
+                  "name": "Guarda o pedido em aberto"
+                }
+              }
+            },
+            {
+              "id": 13,
+              "module": "http:MakeRequest",
+              "version": 4,
+              "parameters": {
+                "authenticationType": "noAuth"
+              },
+              "mapper": {
+                "parseResponse": true,
+                "stopOnHttpError": true,
+                "allowRedirects": true,
+                "shareCookies": false,
+                "requestCompressedContent": true,
+                "url": "https://api.telegram.org/bot{{6.telegram_token}}/sendMessage",
+                "method": "post",
+                "contentType": "urlEncoded",
+                "urlEncodedBodyContent": [
+                  {
+                    "name": "chat_id",
+                    "value": "{{2.remetente}}"
+                  },
+                  {
+                    "name": "text",
+                    "value": "Faltou: {{join(10.faltando; \", \")}}. Me manda que eu fecho."
+                  }
+                ]
+              },
+              "metadata": {
+                "designer": {
+                  "x": 3600,
+                  "y": -150,
+                  "name": "Pergunta o que falta"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "flow": [
+            {
+              "id": 14,
+              "module": "datastore:DeleteRecord",
+              "version": 1,
+              "parameters": {
+                "datastore": 130846
+              },
+              "mapper": {
+                "key": "{{2.remetente}}"
+              },
+              "filter": {
+                "name": "Pedido completo",
+                "conditions": [
+                  [
+                    {
+                      "a": "{{if(length(10.faltando) > 0; \"sim\"; \"nao\")}}",
+                      "o": "text:equal",
+                      "b": "nao"
+                    }
+                  ]
+                ]
+              },
+              "metadata": {
+                "designer": {
+                  "x": 3300,
+                  "y": 150,
+                  "name": "Limpa o pedido em aberto"
+                }
+              }
+            },
+            {
+              "id": 15,
+              "module": "http:MakeRequest",
+              "version": 4,
+              "parameters": {
+                "authenticationType": "noAuth"
+              },
+              "mapper": {
+                "parseResponse": true,
+                "stopOnHttpError": true,
+                "allowRedirects": true,
+                "shareCookies": false,
+                "requestCompressedContent": true,
+                "url": "{{6.webapp_url}}",
+                "method": "post",
+                "contentType": "json",
+                "inputMethod": "jsonString",
+                "jsonStringBodyContent": "{\n  \"action\": \"orcarWhatsApp\",\n  \"segredo\": \"{{6.webapp_segredo}}\",\n  \"origem\": \"telegram\",\n  \"pedido\": {{9.extraido}}\n}"
+              },
+              "metadata": {
+                "designer": {
+                  "x": 3600,
+                  "y": 150,
+                  "name": "Motor de cálculo (Web App)"
+                }
+              }
+            },
+            {
+              "id": 16,
+              "module": "http:MakeRequest",
+              "version": 4,
+              "parameters": {
+                "authenticationType": "noAuth"
+              },
+              "mapper": {
+                "parseResponse": true,
+                "stopOnHttpError": true,
+                "allowRedirects": true,
+                "shareCookies": false,
+                "requestCompressedContent": true,
+                "url": "https://api.telegram.org/bot{{6.telegram_token}}/sendMessage",
+                "method": "post",
+                "contentType": "urlEncoded",
+                "urlEncodedBodyContent": [
+                  {
+                    "name": "chat_id",
+                    "value": "{{2.remetente}}"
+                  },
+                  {
+                    "name": "text",
+                    "value": "{{ifempty(15.data.texto_cliente; 15.data.pergunta)}}"
+                  }
+                ]
+              },
+              "metadata": {
+                "designer": {
+                  "x": 3900,
+                  "y": 150,
+                  "name": "Orçamento do cliente"
+                }
+              }
+            },
+            {
+              "id": 17,
+              "module": "http:MakeRequest",
+              "version": 4,
+              "parameters": {
+                "authenticationType": "noAuth"
+              },
+              "mapper": {
+                "parseResponse": true,
+                "stopOnHttpError": true,
+                "allowRedirects": true,
+                "shareCookies": false,
+                "requestCompressedContent": true,
+                "url": "https://api.telegram.org/bot{{6.telegram_token}}/sendMessage",
+                "method": "post",
+                "contentType": "urlEncoded",
+                "urlEncodedBodyContent": [
+                  {
+                    "name": "chat_id",
+                    "value": "{{2.remetente}}"
+                  },
+                  {
+                    "name": "text",
+                    "value": "{{15.data.texto_interno}}"
+                  }
+                ]
+              },
+              "metadata": {
+                "designer": {
+                  "x": 4200,
+                  "y": 150,
+                  "name": "Bloco interno"
+                }
+              },
+              "filter": {
+                "name": "Só quando fechou orçamento",
+                "conditions": [
+                  [
+                    {
+                      "a": "{{15.data.texto_interno}}",
+                      "o": "exist"
+                    }
+                  ]
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "sequential": false,
+      "confidential": false,
+      "dataloss": false,
+      "dlq": false
+    },
+    "designer": {
+      "orphans": []
+    }
+  }
+}

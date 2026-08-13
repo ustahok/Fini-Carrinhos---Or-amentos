@@ -2,16 +2,16 @@
 
 Como montar o cenário que liga o WhatsApp ao motor de cálculo.
 
-> **Por que uma receita e não um blueprint pronto:** as escritas na sua conta do
-> Make precisam da sua aprovação, e nesta sessão ela não chegou — nem para criar,
-> nem para listar os módulos disponíveis. Eu poderia ter escrito um blueprint no
-> escuro, mas um arquivo com um identificador de módulo errado falha na
-> importação e você perde mais tempo depurando do que montaria seguindo isto.
+> **O cenário já existe na conta.** Foi criado em 13/08/2026 com as escritas
+> liberadas: cenário **5935418 `ORCAMENTO - WhatsApp`**, **inativo**, e o
+> blueprint está em `make/orcamento-whatsapp.blueprint.json`. Todos os
+> identificadores de módulo foram conferidos na conta antes de criar, e a Make
+> aceitou os 17 módulos sem erro (`isinvalid: false`).
 >
-> Se você liberar a escrita no MCP do Make, eu monto o cenário direto na sua
-> conta, inativo, já testado com um "Run once" — e aí sim exporto o blueprint
-> para cá. Enquanto isso, esta receita é completa: todos os corpos JSON estão
-> prontos para copiar.
+> **O desenho mudou em dois pontos** em relação à receita abaixo — leia
+> "Estado atual" no fim deste arquivo antes de seguir os passos ao pé da letra.
+> A receita continua válida como descrição da lógica; o que mudou foi o canal de
+> entrada (Telegram, não BotConversa) e de onde vêm os segredos.
 
 ## Antes de tudo
 
@@ -203,19 +203,96 @@ decide se o resto funciona como está.
    e o total deve fechar em **R$ 2.070,00**
 5. Pedir para alguém de fora escrever `orçamento` → **nada deve acontecer**
 
-## O que eu conferi e o que não
+## Estado atual (13/08/2026)
 
-**Conferido** lendo os seus cenários e a sua conta:
+### A dúvida do BotConversa foi respondida — e mudou o canal
 
-- API do BotConversa: endpoints, header `API-KEY` e o corpo do `send_message`
-- Data Store 128074 (`Chaves API`), key `anthropic` → campo `api_key`
-- O padrão da chamada Anthropic com `output_config.format.json_schema`, que já
-  roda no seu cenário da nota fiscal
-- Que o seu número já é assinante do BotConversa
-- Todos os valores calculados nos critérios de teste — vêm do motor, com 45
-  casos passando
+O ⚠️ acima era real. Na documentação do BotConversa, a única forma de capturar
+texto livre é o elemento **"Salvar resposta"**, que pausa o fluxo e grava num
+**campo personalizado** do assinante. Não existe variável de sistema com "a
+última mensagem"; o bloco de integração só envia campos que já existem no
+assinante, e o gatilho por palavra-chave não carrega o texto que veio junto.
 
-**Não conferido**, e por isso está marcado no texto:
+Ou seja: pelo BotConversa não dá para mandar `orçamento pra Ana, 15/09, Santo
+André, 100 convidados` **em uma mensagem só** — vira duas rodadas. E o envio de
+volta verificado (`{"type":"text","value":…}`) é só texto, sem caminho conferido
+para a imagem da Parte 2.
 
-- O formato exato do que a ação de webhook do BotConversa envia (o ⚠️ acima)
-- Os nomes dos módulos de escrita em Data Store e do Router no seu Make
+Por isso a entrada é **Telegram**: entrega o texto livre numa mensagem só, e
+`sendPhoto` é nativo, então a Parte 2 já nasce destravada. O agente é interno —
+o cliente nunca fala com ele, o Will encaminha o orçamento pelo WhatsApp como
+sempre. Voltar para o BotConversa depois é barato: o gatilho é um Custom webhook
+genérico e o módulo 2 já aceita `telefone`/`mensagem`/`nome` além do formato do
+Telegram.
+
+### Correções nos identificadores de módulo
+
+Conferidos com `app-modules_list` e contra blueprints reais da conta. Dois
+estavam errados na receita acima e teriam quebrado a importação:
+
+| Peça | Identificador correto | Versão |
+|---|---|---|
+| Custom webhook | `gateway:CustomWebHook` | 1 |
+| Data store · get | `datastore:GetRecord` | 1 |
+| Data store · add/replace | `datastore:AddRecord` (**não** `AddReplaceRecord`) | 1 |
+| Data store · delete | `datastore:DeleteRecord` | 1 |
+| Set multiple variables | `util:SetVariables` | 1 |
+| HTTP request | `http:MakeRequest` (**não** `http:ActionSendData`) | 4 |
+| Parse JSON | `json:ParseJSON` | 1 |
+| Router | `builtin:BasicRouter` | 1 |
+
+Também não existe checkbox "Don't stop on missing record" em
+`datastore:GetRecord` — o módulo só tem `key` e `returnWrapped`.
+
+### O que foi criado na conta
+
+| Recurso | ID |
+|---|---|
+| Cenário `ORCAMENTO - WhatsApp` (inativo) | 5935418 |
+| Webhook `Orcamento WhatsApp` | 2687739 |
+| Data Store `Orcamento - operadores autorizados` | 130845 |
+| Data Store `Orcamento - pedido em aberto` | 130846 |
+| Data Store `Orcamento - config` | 130848 |
+| Data structure `Orcamento - pedido extraido` | 457735 |
+
+### Segredos ficam no Make, nunca no blueprint
+
+Este repositório é **público**. Nenhuma URL, senha ou token entra em
+`orcamento-whatsapp.blueprint.json` — o cenário lê tudo em runtime do Data Store
+`Orcamento - config` (130848), registro key `default`, criado vazio:
+
+| Campo | O que pôr |
+|---|---|
+| `webapp_url` | URL da implantação do Web App do Apps Script |
+| `webapp_segredo` | o mesmo valor da Script Property `SEGREDO` |
+| `telegram_token` | token do bot, do BotFather |
+
+A chave da Anthropic continua vindo do Data Store 128074 (`Chaves API`), key
+`anthropic` — que já existia.
+
+### Sobre aspas e quebras de linha
+
+O texto do operador e o pedido pendente entram dentro de uma string JSON no
+corpo da chamada Anthropic. Em vez de escapar, o módulo 2 **normaliza**: aspas
+viram apóstrofo e quebras de linha viram espaço. Não perde nada para extração de
+parâmetros e o corpo nunca quebra. As respostas ao Telegram vão como
+`application/x-www-form-urlencoded`, então o texto do orçamento (multilinha, com
+`R$` e acentos) não precisa de escape nenhum.
+
+### O que falta para o teste ponta a ponta
+
+Nada disso eu consigo fazer daqui:
+
+1. **Publicar o Web App** e definir a Script Property `SEGREDO` (conta Google sua)
+2. **Criar o bot** no BotFather e pegar o token
+3. Preencher os três campos do `Orcamento - config`
+4. Apontar o Telegram para o webhook:
+   `https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://hook.us2.make.com/ymvb6h88e2yifyabpr46a7owzm8tpawh`
+5. Acrescentar em `Orcamento - operadores autorizados` um registro com
+   **key = seu chat id do Telegram** e `nome` = `William`
+6. Ativar e rodar a "Ordem de teste" acima
+
+O **Run once não foi executado**: a ativação do cenário foi barrada pelo
+classificador de permissões desta sessão, e de qualquer forma os passos 1–5
+acima são pré-requisito. O que está verificado é que a Make aceitou o blueprint
+inteiro, com todos os módulos existentes e configuração válida.
