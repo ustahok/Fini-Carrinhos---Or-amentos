@@ -63,6 +63,15 @@
         "key": "{{2.remetente}}",
         "returnWrapped": false
       },
+      "onerror": [
+        {
+          "id": 18,
+          "module": "builtin:Ignore",
+          "version": 1,
+          "parameters": {},
+          "mapper": {}
+        }
+      ],
       "metadata": {
         "designer": {
           "x": 600,
@@ -93,6 +102,15 @@
           ]
         ]
       },
+      "onerror": [
+        {
+          "id": 19,
+          "module": "builtin:Resume",
+          "version": 1,
+          "parameters": {},
+          "mapper": {}
+        }
+      ],
       "metadata": {
         "designer": {
           "x": 900,
