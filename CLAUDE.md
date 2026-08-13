@@ -22,10 +22,17 @@ Preço vive em `codigo.gs` e na planilha, e é coberto por `testes/casos.json`.
 
 ## Projeto separado
 
-Este projeto é **isolado** do "Fini Carrinho · Estoque" (repo
-`Fini-Carrinho---Estoque-Fable5`). Nenhum código é compartilhado. Não escreva
-naquele repositório a partir daqui. Se precisar de logo ou fontes para o
-template, **copie** os arquivos para cá.
+Este projeto é **autossuficiente**. Nenhum código, arquivo ou caminho vem de
+fora deste repositório — inclusive os arquivos de marca (logo Fini e as fontes
+Nunito e FiniFun), que já estão versionados em `preview/marca/` e são de onde o
+`preview/build.js` lê por padrão. Não há nada a copiar de outro lugar.
+
+Existe um projeto irmão, "Fini Carrinho · Estoque" (repo
+`Fini-Carrinho---Estoque-Fable5`), que serviu de fonte de pesquisa no início:
+dele vieram as bases de frete e promotor, a API do BotConversa e o padrão da
+chamada à Anthropic — tudo já registrado aqui, neste arquivo e em
+`make/README.md`. **Não escreva naquele repositório a partir daqui**, e não
+conte com ele estar por perto: as sessões deste projeto rodam só com este repo.
 
 Integração com ClickUp / Typeform / Olist está **fora de escopo na v1**, mas a
 aba de log grava `id` e uma coluna `clickup_task_id` vazia, para que a
